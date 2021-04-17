@@ -36,11 +36,10 @@ public class InjectorImpl implements Injector {
         Object resultObject;
         if (binding.isSingleton()) {
             resultObject = singletonsCache.computeIfAbsent(type, t -> instantiateObjectRecursively(type));
+            return () -> (T) resultObject;
         } else {
-            resultObject = instantiateObjectRecursively(type);
+            return () -> (T) instantiateObjectRecursively(type);
         }
-
-        return () -> (T) resultObject;
     }
 
     /**
@@ -70,7 +69,7 @@ public class InjectorImpl implements Injector {
     private Object instantiateObjectRecursively(Class<?> type) {
         Long threadId = Thread.currentThread().getId();
 
-        if (!injectionHistory.putIfAbsent(threadId, new HashSet<>()).add(type))
+        if (!injectionHistory.computeIfAbsent(threadId, t -> new HashSet<>()).add(type))
             throw new RecursiveInjectionException();
 
         ClassBinding binding = bindings.get(type);
