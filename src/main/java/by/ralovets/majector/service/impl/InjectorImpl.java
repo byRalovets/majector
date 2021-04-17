@@ -1,11 +1,13 @@
 package by.ralovets.majector.service.impl;
 
+import by.ralovets.majector.exception.BindingNotFoundException;
+import by.ralovets.majector.exception.InstantiationException;
+import by.ralovets.majector.exception.RecursiveInjectionException;
 import by.ralovets.majector.model.ClassBinding;
 import by.ralovets.majector.service.ClassBindingCreator;
 import by.ralovets.majector.service.Injector;
 import by.ralovets.majector.service.Provider;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -15,46 +17,30 @@ public class InjectorImpl implements Injector {
 
     private final ClassBindingCreator bindingCreator = ClassBindingCreatorImpl.getInstance();
 
-    List<Class<?>> types = new ArrayList<>();
     Map<Class<?>, ClassBinding> bindings = new HashMap<>();
     Map<Class<?>, Object> singletonsCache = new HashMap<>();
+    Map<Long, Set<Class<?>>> injectionHistory = new HashMap<>();
 
     /**
      * Returns class instance with all injections by interface class.
      */
     @Override
     public <T> Provider<T> getProvider(Class<T> type) {
-        if (isNull(type)) return null;
+        if (isNull(type))
+            throw new IllegalArgumentException();
 
-        ClassBinding binding = findBinding(type);
-
-        if (isNull(binding)) return null;
-
-        if (binding.isSingleton()) {
-            Object o = singletonsCache.get(type);
-            if (isNull(o)) {
-                o = instantiateObject(binding);
-            }
-
-            Object resultObject = o;
-            return () -> (T) resultObject;
-        } else {
-            return () -> (T) instantiateObject(binding);
-        }
-    }
-
-    private Object instantiateObject(ClassBinding binding) {
-        Object[] args = Arrays.stream(binding.getConstructorArgsTypes())
-                .map(c -> getProvider(c).getInstance())
-                .toArray(Object[]::new);
-
-        Constructor<?> constructor = binding.getInjectedConstructor();
-
-        try {
-            return constructor.newInstance(args);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        ClassBinding binding = bindings.get(type);
+        if (isNull(binding))
             return null;
+
+        Object resultObject;
+        if (binding.isSingleton()) {
+            resultObject = singletonsCache.computeIfAbsent(type, t -> instantiateObjectRecursively(type));
+        } else {
+            resultObject = instantiateObjectRecursively(type);
         }
+
+        return () -> (T) resultObject;
     }
 
     /**
@@ -62,47 +48,47 @@ public class InjectorImpl implements Injector {
      */
     @Override
     public <T> void bind(Class<T> intf, Class<? extends T> impl) {
+        if (isNull(intf) || isNull(impl))
+            throw new IllegalArgumentException();
+
         ClassBinding binding = bindingCreator.getBinding(intf, impl);
-        types.add(intf);
         bindings.put(intf, binding);
     }
 
     /**
-     * Registers singleton class.
+     * Registers binding by interface class and its implementation.
      */
     @Override
     public <T> void bindSingleton(Class<T> intf, Class<? extends T> impl) {
+        if (isNull(intf) || isNull(impl))
+            throw new IllegalArgumentException();
+
         ClassBinding binding = bindingCreator.getSingletonBinding(intf, impl);
-        types.add(intf);
         bindings.put(intf, binding);
     }
 
-    // Private methods
+    private Object instantiateObjectRecursively(Class<?> type) {
+        Long threadId = Thread.currentThread().getId();
 
-    private ClassBinding findBinding(Class<?> type) {
-        Class<?> c = findConcreteClass(type);
+        if (!injectionHistory.putIfAbsent(threadId, new HashSet<>()).add(type))
+            throw new RecursiveInjectionException();
 
-        if (isNull(c)) c = findSubclass(type);
-        if (isNull(c)) return null;
+        ClassBinding binding = bindings.get(type);
 
-        return bindings.get(c);
-    }
+        if (isNull(binding))
+            throw new BindingNotFoundException();
 
-    private Class<?> findConcreteClass(Class<?> c) {
-        if (isNull(c)) return null;
+        Object[] args = Arrays.stream(binding.getConstructorArgsTypes())
+                .map(this::instantiateObjectRecursively).toArray();
 
-        for (Class<?> t : types) {
-            if (t.equals(c)) return t;
+        Object object;
+        try {
+            object = binding.getInjectedConstructor().newInstance(args);
+        } catch (java.lang.InstantiationException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            throw new InstantiationException(e.getMessage());
         }
-        return null;
-    }
 
-    private Class<?> findSubclass(Class<?> c) {
-        if (isNull(c)) return null;
-
-        for (Class<?> t : types) {
-            if (c.isAssignableFrom(t)) return t;
-        }
-        return null;
+        injectionHistory.get(threadId).remove(type);
+        return object;
     }
 }

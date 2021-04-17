@@ -4,21 +4,21 @@ import java.lang.reflect.Constructor;
 
 public class ClassBinding {
 
-    private boolean isSingleton;
     private Class<?> intfType;
     private Class<?> implType;
-    private Class<?>[] constructorArgsTypes = new Class<?>[0];
     private Constructor<?> injectedConstructor;
+    private Class<?>[] constructorArgsTypes = new Class<?>[0];
+    private boolean isSingleton;
 
     public ClassBinding() {
     }
 
-    public ClassBinding(boolean isSingleton, Class<?> intfType, Class<?> implType, Class<?>[] constructorArgsTypes, Constructor<?> injectedConstructor) {
-        this.isSingleton = isSingleton;
+    public ClassBinding(Class<?> intfType, Class<?> implType, Constructor<?> injectedConstructor, Class<?>[] constructorArgsTypes, boolean isSingleton) {
         this.intfType = intfType;
         this.implType = implType;
-        this.constructorArgsTypes = constructorArgsTypes;
         this.injectedConstructor = injectedConstructor;
+        this.constructorArgsTypes = constructorArgsTypes;
+        this.isSingleton = isSingleton;
     }
 
     public boolean isSingleton() {
