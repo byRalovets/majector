@@ -30,7 +30,19 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class InjectorImplTest {
 
-    static Stream<Arguments> twoClasses_recursive() {
+    private static Stream<Arguments> twoClasses_exception() {
+        return Stream.of(
+                arguments(IllegalArgumentException.class, null, Object.class),
+                arguments(IllegalArgumentException.class, Object.class, null),
+                arguments(IllegalArgumentException.class, null, null),
+                arguments(TooManyConstructorsException.class, ToManyConstructorsInterface.class, ToManyConstructorsClass01.class),
+                arguments(TooManyConstructorsException.class, ToManyConstructorsInterface.class, ToManyConstructorsClass02.class),
+                arguments(ConstructorNotFoundException.class, NoneConstructorInterface.class, NoneConstructorClass01.class),
+                arguments(ConstructorNotFoundException.class, NoneConstructorInterface.class, NoneConstructorClass02.class)
+        );
+    }
+
+    private static Stream<Arguments> twoClasses_recursion() {
         return Stream.of(
                 arguments(SingleRecursionA.class, SingleRecursionA.class),
                 arguments(DoubleRecursionA.class, DoubleRecursionA.class),
@@ -38,98 +50,16 @@ class InjectorImplTest {
         );
     }
 
-    static Stream<Arguments> twoClasses_with_null() {
-        return Stream.of(
-                arguments(null, Object.class),
-                arguments(Object.class, null),
-                arguments(null, null)
-        );
-    }
-
-    static Stream<Arguments> twoClasses_too_many_constructors() {
-        return Stream.of(
-                arguments(ToManyConstructorsInterface.class, ToManyConstructorsClass01.class),
-                arguments(ToManyConstructorsInterface.class, ToManyConstructorsClass02.class)
-        );
-    }
-
-    static Stream<Arguments> twoClasses_with_no_constructors() {
-        return Stream.of(
-                arguments(NoneConstructorInterface.class, NoneConstructorClass01.class),
-                arguments(NoneConstructorInterface.class, NoneConstructorClass02.class)
-        );
+    @ParameterizedTest
+    @MethodSource("twoClasses_exception")
+    public <T> void bind_exception(Class<? extends Exception> e, Class<T> intf, Class<? extends T> impl) {
+        assertThrows(e, () -> new InjectorImpl().bind(intf, impl));
     }
 
     @ParameterizedTest
-    @MethodSource("twoClasses_with_null")
-    public <T> void bind_with_null(Class<T> intf, Class<? extends T> impl) {
-        Injector injector = new InjectorImpl();
-        assertNotNull(injector);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> injector.bind(intf, impl)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("twoClasses_too_many_constructors")
-    public <T> void bind_too_many_constructors(Class<T> intf, Class<? extends T> impl) {
-        Injector injector = new InjectorImpl();
-        assertNotNull(injector);
-
-        assertThrows(
-                TooManyConstructorsException.class,
-                () -> injector.bind(intf, impl)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("twoClasses_with_no_constructors")
-    public <T> void bind_with_no_constructors(Class<T> intf, Class<? extends T> impl) {
-        Injector injector = new InjectorImpl();
-        assertNotNull(injector);
-
-        assertThrows(
-                ConstructorNotFoundException.class,
-                () -> injector.bind(intf, impl)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("twoClasses_with_null")
-    public <T> void bindSingleton_with_null(Class<T> intf, Class<? extends T> impl) {
-        Injector injector = new InjectorImpl();
-        assertNotNull(injector);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> injector.bindSingleton(intf, impl)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("twoClasses_too_many_constructors")
-    public <T> void bindSingleton_too_many_constructors(Class<T> intf, Class<? extends T> impl) {
-        Injector injector = new InjectorImpl();
-        assertNotNull(injector);
-
-        assertThrows(
-                TooManyConstructorsException.class,
-                () -> injector.bindSingleton(intf, impl)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("twoClasses_with_no_constructors")
-    public <T> void bindSingleton_with_no_constructors(Class<T> intf, Class<? extends T> impl) {
-        Injector injector = new InjectorImpl();
-        assertNotNull(injector);
-
-        assertThrows(
-                ConstructorNotFoundException.class,
-                () -> injector.bindSingleton(intf, impl)
-        );
+    @MethodSource("twoClasses_exception")
+    public <T> void bindSingleton_exception(Class<? extends Exception> e, Class<T> intf, Class<? extends T> impl) {
+        assertThrows(e, () -> new InjectorImpl().bindSingleton(intf, impl));
     }
 
     @Test
@@ -143,21 +73,10 @@ class InjectorImplTest {
     @Test
     public void getProvider_for_prototypes() {
         Injector injector = new InjectorImpl();
-        assertNotNull(injector);
 
         injector.bind(EventDao.class, InMemoryEventDAOImpl.class);
         injector.bind(EventService.class, EventServiceImpl.class);
         injector.bind(RestEventController.class, RestEventController.class);
-
-        Provider<?> daoProvider = injector.getProvider(EventDao.class);
-        assertNotNull(daoProvider);
-        assertNotNull(daoProvider.getInstance());
-        assertNotSame(daoProvider.getInstance(), daoProvider.getInstance());
-
-        Provider<?> serviceProvider = injector.getProvider(EventService.class);
-        assertNotNull(serviceProvider);
-        assertNotNull(serviceProvider.getInstance());
-        assertNotSame(serviceProvider.getInstance(), serviceProvider.getInstance());
 
         Provider<?> controllerProvider = injector.getProvider(RestEventController.class);
         assertNotNull(controllerProvider);
@@ -168,33 +87,21 @@ class InjectorImplTest {
     @Test
     public void getProvider_for_singletons() {
         Injector injector = new InjectorImpl();
-        assertNotNull(injector);
 
         injector.bindSingleton(EventDao.class, InMemoryEventDAOImpl.class);
         injector.bindSingleton(EventService.class, EventServiceImpl.class);
-        injector.bind(RestEventController.class, RestEventController.class);
-
-        Provider<?> daoProvider = injector.getProvider(EventDao.class);
-        assertNotNull(daoProvider);
-        assertNotNull(daoProvider.getInstance());
-        assertSame(daoProvider.getInstance(), daoProvider.getInstance());
-
-        Provider<?> serviceProvider = injector.getProvider(EventService.class);
-        assertNotNull(serviceProvider);
-        assertNotNull(serviceProvider.getInstance());
-        assertSame(serviceProvider.getInstance(), serviceProvider.getInstance());
+        injector.bindSingleton(RestEventController.class, RestEventController.class);
 
         Provider<?> controllerProvider = injector.getProvider(RestEventController.class);
         assertNotNull(controllerProvider);
         assertNotNull(controllerProvider.getInstance());
-        assertNotSame(controllerProvider.getInstance(), controllerProvider.getInstance());
+        assertSame(controllerProvider.getInstance(), controllerProvider.getInstance());
     }
 
     @ParameterizedTest
-    @MethodSource("twoClasses_recursive")
+    @MethodSource("twoClasses_recursion")
     public <T> void getProvider_for_singletons_recursive(Class<T> intf, Class<? extends T> impl) {
         Injector injector = new InjectorImpl();
-        assertNotNull(injector);
 
         injector.bindSingleton(SingleRecursionA.class, SingleRecursionA.class);
         injector.bindSingleton(DoubleRecursionA.class, DoubleRecursionA.class);
@@ -203,9 +110,6 @@ class InjectorImplTest {
         injector.bindSingleton(MultipleRecursionB.class, MultipleRecursionB.class);
         injector.bindSingleton(MultipleRecursionC.class, MultipleRecursionC.class);
 
-        assertThrows(
-                RecursiveInjectionException.class,
-                () -> injector.getProvider(intf)
-        );
+        assertThrows(RecursiveInjectionException.class, () -> injector.getProvider(intf));
     }
 }
