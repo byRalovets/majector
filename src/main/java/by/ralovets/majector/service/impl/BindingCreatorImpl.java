@@ -20,6 +20,13 @@ public class BindingCreatorImpl implements BindingCreator {
     public BindingCreatorImpl() {
     }
 
+    /**
+     * Creates binding of interface to implementation.
+     *
+     * @throws IllegalArgumentException     - if one of the arguments is null
+     * @throws TooManyConstructorsException - if there are more than two constructors with @Inject
+     * @throws ConstructorNotFoundException - if there is no constructors (with @Inject or default)
+     */
     @Override
     public <T> Binding getBinding(Class<T> intf, Class<? extends T> impl) {
         if (isNull(intf) || isNull(impl)) {
@@ -45,6 +52,13 @@ public class BindingCreatorImpl implements BindingCreator {
         return new Binding(intf, impl, usedConstructor, Scope.PROTOTYPE);
     }
 
+    /**
+     * Creates binding of interface to implementation for singletons.
+     *
+     * @throws IllegalArgumentException     - if one of the arguments is null
+     * @throws TooManyConstructorsException - if there are more than two constructors with @Inject
+     * @throws ConstructorNotFoundException - if there is no constructors (with @Inject or default)
+     */
     @Override
     public <T> Binding getSingletonBinding(Class<T> intf, Class<? extends T> impl) {
         if (isNull(intf) || isNull(impl)) {

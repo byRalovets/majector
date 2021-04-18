@@ -1,8 +1,7 @@
 package by.ralovets.majector.service.impl;
 
-import by.ralovets.majector.exception.BindingNotFoundException;
 import by.ralovets.majector.exception.InstantiationException;
-import by.ralovets.majector.exception.RecursiveInjectionException;
+import by.ralovets.majector.exception.*;
 import by.ralovets.majector.model.Binding;
 import by.ralovets.majector.model.Scope;
 import by.ralovets.majector.service.BindingCreator;
@@ -29,7 +28,12 @@ public class InjectorImpl implements Injector {
     Map<Long, Set<Class<?>>> injectionHistory = new HashMap<>();
 
     /**
-     * Returns class instance with all injections by interface class.
+     * Returns a provider that is ready to provide you with objects of the requested type.
+     *
+     * @throws IllegalArgumentException    - if one of the arguments is null
+     * @throws RecursiveInjectionException - if recursive injection occurs
+     * @throws BindingNotFoundException    - if there is no binding to this type
+     * @throws InstantiationException      - if an error occurred during instantiation
      */
     @Override
     public <T> Provider<T> getProvider(Class<T> type) {
@@ -60,7 +64,11 @@ public class InjectorImpl implements Injector {
     }
 
     /**
-     * Registers binding by interface class and its implementation.
+     * Registers binding.
+     *
+     * @throws IllegalArgumentException     - if one of the arguments is null
+     * @throws TooManyConstructorsException - if there are more than two constructors with @Inject
+     * @throws ConstructorNotFoundException - if there is no constructors (with @Inject or default)
      */
     @Override
     public <T> void bind(Class<T> intf, Class<? extends T> impl) {
@@ -73,7 +81,11 @@ public class InjectorImpl implements Injector {
     }
 
     /**
-     * Registers binding by interface class and its implementation.
+     * Registers singleton binding.
+     *
+     * @throws IllegalArgumentException     - if one of the arguments is null
+     * @throws TooManyConstructorsException - if there are more than two constructors with @Inject
+     * @throws ConstructorNotFoundException - if there is no constructors (with @Inject or default)
      */
     @Override
     public <T> void bindSingleton(Class<T> intf, Class<? extends T> impl) {
@@ -85,6 +97,10 @@ public class InjectorImpl implements Injector {
         bindings.put(intf, binding);
     }
 
+    /**
+     * @throws BindingNotFoundException - if there is no binding to this type
+     * @throws InstantiationException   - if an error occurred during instantiation
+     */
     private Object instantiateObjectRecursively(Class<?> type) {
         Binding binding = bindings.get(type);
 
@@ -115,6 +131,9 @@ public class InjectorImpl implements Injector {
         return object;
     }
 
+    /**
+     * @throws RecursiveInjectionException - if recursive injection occurs
+     */
     private void checkInfiniteRecursion(Class<?> type) {
         Long threadId = Thread.currentThread().getId();
 
