@@ -79,24 +79,8 @@ class ClassBindingCreatorImplTest {
     }
 
     @ParameterizedTest
-    @MethodSource("twoClasses_correct")
-    <T> void getSingletonBinding(Class<T> intf, Class<? extends T> impl) {
-        ClassBindingCreator classBindingCreator = ClassBindingCreatorImpl.getInstance();
-        assertNotNull(classBindingCreator);
-
-        ClassBinding binding = classBindingCreator.getSingletonBinding(intf, impl);
-        assertNotNull(binding);
-
-        assertSame(intf, binding.getIntfType());
-        assertSame(impl, binding.getImplType());
-        assertEquals(impl.getConstructors()[0], binding.getInjectedConstructor());
-        assertArrayEquals(impl.getConstructors()[0].getParameterTypes(), binding.getConstructorArgsTypes());
-        assertTrue(binding.isSingleton());
-    }
-
-    @ParameterizedTest
     @MethodSource("twoClasses_with_null")
-    <T> void getBinding_with_null_argument(Class<T> intf, Class<? extends T> impl) {
+    <T> void getBinding_with_null(Class<T> intf, Class<? extends T> impl) {
         ClassBindingCreator classBindingCreator = ClassBindingCreatorImpl.getInstance();
         assertNotNull(classBindingCreator);
 
@@ -108,7 +92,7 @@ class ClassBindingCreatorImplTest {
 
     @ParameterizedTest
     @MethodSource("twoClasses_too_many_constructors")
-    <T> void getBinding_with_many_constructors(Class<T> intf, Class<? extends T> impl) {
+    <T> void getBinding_too_many_constructors(Class<T> intf, Class<? extends T> impl) {
         ClassBindingCreator classBindingCreator = ClassBindingCreatorImpl.getInstance();
         assertNotNull(classBindingCreator);
 
@@ -131,8 +115,24 @@ class ClassBindingCreatorImplTest {
     }
 
     @ParameterizedTest
+    @MethodSource("twoClasses_correct")
+    <T> void getSingletonBinding(Class<T> intf, Class<? extends T> impl) {
+        ClassBindingCreator classBindingCreator = ClassBindingCreatorImpl.getInstance();
+        assertNotNull(classBindingCreator);
+
+        ClassBinding binding = classBindingCreator.getSingletonBinding(intf, impl);
+        assertNotNull(binding);
+
+        assertSame(intf, binding.getIntfType());
+        assertSame(impl, binding.getImplType());
+        assertEquals(impl.getConstructors()[0], binding.getInjectedConstructor());
+        assertArrayEquals(impl.getConstructors()[0].getParameterTypes(), binding.getConstructorArgsTypes());
+        assertTrue(binding.isSingleton());
+    }
+
+    @ParameterizedTest
     @MethodSource("twoClasses_with_null")
-    <T> void getSingletonBinding_with_null_argument(Class<T> intf, Class<? extends T> impl) {
+    <T> void getSingletonBinding_with_null(Class<T> intf, Class<? extends T> impl) {
         ClassBindingCreator classBindingCreator = ClassBindingCreatorImpl.getInstance();
         assertNotNull(classBindingCreator);
 
@@ -144,7 +144,7 @@ class ClassBindingCreatorImplTest {
 
     @ParameterizedTest
     @MethodSource("twoClasses_too_many_constructors")
-    <T> void getSingletonBinding_with_many_constructors(Class<T> intf, Class<? extends T> impl) {
+    <T> void getSingletonBinding_too_many_constructors(Class<T> intf, Class<? extends T> impl) {
         ClassBindingCreator classBindingCreator = ClassBindingCreatorImpl.getInstance();
         assertNotNull(classBindingCreator);
 
