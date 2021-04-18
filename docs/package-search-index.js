@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"by.ralovets.majector.annotation"},{"l":"by.ralovets.majector.exception"},{"l":"by.ralovets.majector.model"},{"l":"by.ralovets.majector.service"},{"l":"by.ralovets.majector.service.impl"}]
