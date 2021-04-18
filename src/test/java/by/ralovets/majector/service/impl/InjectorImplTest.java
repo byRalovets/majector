@@ -57,10 +57,7 @@ class InjectorImplTest {
 
     @Test
     public void getProviderWithNull() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new InjectorImpl().getProvider(null)
-        );
+        assertThrows(IllegalArgumentException.class, () -> new InjectorImpl().getProvider(null));
     }
 
     @Test
