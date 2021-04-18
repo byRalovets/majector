@@ -1,4 +1,4 @@
-# Majector -- magic injector for you!
+# Majector — magic injector for you!
 
 Hi! This is the simplest version of the DI container.
 
@@ -6,7 +6,7 @@ Hi! This is the simplest version of the DI container.
 
 1. No third-party libraries were used (except Junit 5).
 2. The logic is implemented in the `InjectorImpl` class based on the `Injector` interface.
-   ```
+   ```java
    public interface Injector {  
    
        // Returns class instance with all injections by interface class.
@@ -22,6 +22,7 @@ Hi! This is the simplest version of the DI container.
    public interface Provider<T> {  
        T getInstance();  
    }
+   ```
 4. `@Inject` is added to the class constructor for binding.
 5. If a class has multiple constructors with  `@Inject`, `TooManyConstructorsException` is thrown.
 6. If there are no constructors with `@Inject`, default constructor is used. In the absence of such  `ConstructorNotFoundException` is thrown.
