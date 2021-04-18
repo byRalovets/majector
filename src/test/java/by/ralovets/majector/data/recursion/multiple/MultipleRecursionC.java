@@ -1,4 +1,4 @@
-package by.ralovets.majector.data.incorrect.recursion.multiple;
+package by.ralovets.majector.data.recursion.multiple;
 
 import by.ralovets.majector.annotation.Inject;
 
