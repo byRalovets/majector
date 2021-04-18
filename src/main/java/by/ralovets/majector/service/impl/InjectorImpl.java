@@ -111,24 +111,18 @@ public class InjectorImpl implements Injector {
         Object[] args = Arrays.stream(binding.getConstructor().getParameterTypes())
                 .map(this::instantiateObjectRecursively).toArray();
 
-        Object object;
         try {
             if (binding.getScope().equals(Scope.SINGLETON)) {
-                object = singletonsCache.computeIfAbsent(type, t -> {
-                    try {
-                        return binding.getConstructor().newInstance(args);
-                    } catch (java.lang.InstantiationException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
-                        throw new InstantiationException(e.getMessage());
-                    }
-                });
+                if (!singletonsCache.containsKey(type)) {
+                    singletonsCache.put(type, binding.getConstructor().newInstance(args));
+                }
+                return singletonsCache.get(type);
             } else {
-                object = binding.getConstructor().newInstance(args);
+                return binding.getConstructor().newInstance(args);
             }
         } catch (java.lang.InstantiationException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
             throw new InstantiationException(e.getMessage());
         }
-
-        return object;
     }
 
     /**
