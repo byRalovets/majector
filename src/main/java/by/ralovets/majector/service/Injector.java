@@ -3,7 +3,7 @@ package by.ralovets.majector.service;
 public interface Injector {
 
     /**
-     * Returns a provider that is ready to provide you with objects of the requested type.
+     * Returns provider that is ready to provide you with objects of the requested type.
      */
     <T> Provider<T> getProvider(Class<T> type);
 
