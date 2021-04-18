@@ -1,4 +1,4 @@
-package by.ralovets.majector.data.constructor.toomany;
+package by.ralovets.majector.dataset.constructor.toomany;
 
 import by.ralovets.majector.annotation.Inject;
 

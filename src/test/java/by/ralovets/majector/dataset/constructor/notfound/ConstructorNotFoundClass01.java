@@ -1,4 +1,4 @@
-package by.ralovets.majector.data.constructor.notfound;
+package by.ralovets.majector.dataset.constructor.notfound;
 
 import by.ralovets.majector.annotation.Inject;
 

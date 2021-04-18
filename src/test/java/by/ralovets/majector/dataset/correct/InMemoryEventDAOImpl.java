@@ -1,4 +1,4 @@
-package by.ralovets.majector.data.correct;
+package by.ralovets.majector.dataset.correct;
 
 public class InMemoryEventDAOImpl implements EventDao {
 }

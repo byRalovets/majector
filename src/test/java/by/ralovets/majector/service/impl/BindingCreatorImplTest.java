@@ -1,15 +1,15 @@
 package by.ralovets.majector.service.impl;
 
-import by.ralovets.majector.data.constructor.notfound.ConstructorNotFoundClass01;
-import by.ralovets.majector.data.constructor.notfound.ConstructorNotFoundClass02;
-import by.ralovets.majector.data.constructor.notfound.ConstructorNotFoundInterface;
-import by.ralovets.majector.data.constructor.toomany.ToManyConstructorsInterface;
-import by.ralovets.majector.data.constructor.toomany.TooManyConstructorsClass01;
-import by.ralovets.majector.data.constructor.toomany.TooManyConstructorsClass02;
-import by.ralovets.majector.data.correct.EventDao;
-import by.ralovets.majector.data.correct.EventService;
-import by.ralovets.majector.data.correct.EventServiceImpl;
-import by.ralovets.majector.data.correct.InMemoryEventDAOImpl;
+import by.ralovets.majector.dataset.constructor.notfound.ConstructorNotFoundClass01;
+import by.ralovets.majector.dataset.constructor.notfound.ConstructorNotFoundClass02;
+import by.ralovets.majector.dataset.constructor.notfound.ConstructorNotFoundInterface;
+import by.ralovets.majector.dataset.constructor.toomany.ToManyConstructorsInterface;
+import by.ralovets.majector.dataset.constructor.toomany.TooManyConstructorsClass01;
+import by.ralovets.majector.dataset.constructor.toomany.TooManyConstructorsClass02;
+import by.ralovets.majector.dataset.correct.EventDao;
+import by.ralovets.majector.dataset.correct.EventService;
+import by.ralovets.majector.dataset.correct.EventServiceImpl;
+import by.ralovets.majector.dataset.correct.InMemoryEventDAOImpl;
 import by.ralovets.majector.exception.ConstructorNotFoundException;
 import by.ralovets.majector.exception.TooManyConstructorsException;
 import by.ralovets.majector.model.Binding;

@@ -1,4 +1,4 @@
-package by.ralovets.majector.data.recursion.single;
+package by.ralovets.majector.dataset.recursion.single;
 
 import by.ralovets.majector.annotation.Inject;
 
