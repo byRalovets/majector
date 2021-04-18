@@ -42,6 +42,9 @@ public class InjectorImpl implements Injector {
             return null;
         }
 
+        // throws RecursiveInjectionException
+        checkInfiniteRecursion(type);
+
         Object resultObject;
         if (binding.getScope().equals(Scope.SINGLETON)) {
             if (singletonsCache.containsKey(type)) {
@@ -83,12 +86,6 @@ public class InjectorImpl implements Injector {
     }
 
     private Object instantiateObjectRecursively(Class<?> type) {
-        Long threadId = Thread.currentThread().getId();
-
-        if (!injectionHistory.computeIfAbsent(threadId, t -> new HashSet<>()).add(type)) {
-            throw new RecursiveInjectionException();
-        }
-
         Binding binding = bindings.get(type);
 
         if (isNull(binding)) {
@@ -115,7 +112,25 @@ public class InjectorImpl implements Injector {
             throw new InstantiationException(e.getMessage());
         }
 
-        injectionHistory.get(threadId).remove(type);
         return object;
+    }
+
+    private void checkInfiniteRecursion(Class<?> type) {
+        Long threadId = Thread.currentThread().getId();
+
+        if (!injectionHistory.computeIfAbsent(threadId, t -> new HashSet<>()).add(type)) {
+            throw new RecursiveInjectionException();
+        }
+
+        Binding binding = bindings.get(type);
+
+        if (isNull(binding)) {
+            throw new BindingNotFoundException();
+        }
+
+        Arrays.stream(binding.getConstructor().getParameterTypes())
+                .forEach(this::checkInfiniteRecursion);
+
+        injectionHistory.get(threadId).remove(type);
     }
 }
