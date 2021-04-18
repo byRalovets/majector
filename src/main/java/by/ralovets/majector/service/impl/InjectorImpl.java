@@ -3,8 +3,9 @@ package by.ralovets.majector.service.impl;
 import by.ralovets.majector.exception.BindingNotFoundException;
 import by.ralovets.majector.exception.InstantiationException;
 import by.ralovets.majector.exception.RecursiveInjectionException;
-import by.ralovets.majector.model.ClassBinding;
-import by.ralovets.majector.service.ClassBindingCreator;
+import by.ralovets.majector.model.Binding;
+import by.ralovets.majector.model.Scope;
+import by.ralovets.majector.service.BindingCreator;
 import by.ralovets.majector.service.Injector;
 import by.ralovets.majector.service.Provider;
 
@@ -15,10 +16,16 @@ import static java.util.Objects.isNull;
 
 public class InjectorImpl implements Injector {
 
-    private final ClassBindingCreator bindingCreator = ClassBindingCreatorImpl.getInstance();
+    private final BindingCreator bindingCreator = new BindingCreatorImpl();
 
-    Map<Class<?>, ClassBinding> bindings = new HashMap<>();
+    Map<Class<?>, Binding> bindings = new HashMap<>();
     Map<Class<?>, Object> singletonsCache = new HashMap<>();
+
+    /*
+     * This map is used to detect recursive injections.
+     * Key is thread id; value is set of classes in current injection.
+     * This is used as a stack, but the uniqueness of the elements is important, not the order
+     */
     Map<Long, Set<Class<?>>> injectionHistory = new HashMap<>();
 
     /**
@@ -30,14 +37,19 @@ public class InjectorImpl implements Injector {
             throw new IllegalArgumentException();
         }
 
-        ClassBinding binding = bindings.get(type);
+        Binding binding = bindings.get(type);
         if (isNull(binding)) {
             return null;
         }
 
         Object resultObject;
-        if (binding.isSingleton()) {
-            resultObject = singletonsCache.computeIfAbsent(type, t -> instantiateObjectRecursively(type));
+        if (binding.getScope().equals(Scope.SINGLETON)) {
+            if (singletonsCache.containsKey(type)) {
+                resultObject = singletonsCache.get(type);
+            } else {
+                resultObject = instantiateObjectRecursively(type);
+                singletonsCache.put(type, resultObject);
+            }
             return () -> (T) resultObject;
         } else {
             return () -> (T) instantiateObjectRecursively(type);
@@ -53,7 +65,7 @@ public class InjectorImpl implements Injector {
             throw new IllegalArgumentException();
         }
 
-        ClassBinding binding = bindingCreator.getBinding(intf, impl);
+        Binding binding = bindingCreator.getBinding(intf, impl);
         bindings.put(intf, binding);
     }
 
@@ -66,7 +78,7 @@ public class InjectorImpl implements Injector {
             throw new IllegalArgumentException();
         }
 
-        ClassBinding binding = bindingCreator.getSingletonBinding(intf, impl);
+        Binding binding = bindingCreator.getSingletonBinding(intf, impl);
         bindings.put(intf, binding);
     }
 
@@ -77,18 +89,28 @@ public class InjectorImpl implements Injector {
             throw new RecursiveInjectionException();
         }
 
-        ClassBinding binding = bindings.get(type);
+        Binding binding = bindings.get(type);
 
         if (isNull(binding)) {
             throw new BindingNotFoundException();
         }
 
-        Object[] args = Arrays.stream(binding.getConstructorArgsTypes())
+        Object[] args = Arrays.stream(binding.getConstructor().getParameterTypes())
                 .map(this::instantiateObjectRecursively).toArray();
 
         Object object;
         try {
-            object = binding.getInjectedConstructor().newInstance(args);
+            if (binding.getScope().equals(Scope.SINGLETON)) {
+                object = singletonsCache.computeIfAbsent(type, t -> {
+                    try {
+                        return binding.getConstructor().newInstance(args);
+                    } catch (java.lang.InstantiationException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                        throw new InstantiationException(e.getMessage());
+                    }
+                });
+            } else {
+                object = binding.getConstructor().newInstance(args);
+            }
         } catch (java.lang.InstantiationException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
             throw new InstantiationException(e.getMessage());
         }

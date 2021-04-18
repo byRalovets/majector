@@ -5,6 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Indicates the constructor that will be used to create the object by the DI container.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.CONSTRUCTOR)
 public @interface Inject {

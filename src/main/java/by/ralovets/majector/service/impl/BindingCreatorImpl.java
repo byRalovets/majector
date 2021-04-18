@@ -3,8 +3,9 @@ package by.ralovets.majector.service.impl;
 import by.ralovets.majector.annotation.Inject;
 import by.ralovets.majector.exception.ConstructorNotFoundException;
 import by.ralovets.majector.exception.TooManyConstructorsException;
-import by.ralovets.majector.model.ClassBinding;
-import by.ralovets.majector.service.ClassBindingCreator;
+import by.ralovets.majector.model.Binding;
+import by.ralovets.majector.model.Scope;
+import by.ralovets.majector.service.BindingCreator;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -12,20 +13,15 @@ import java.util.Arrays;
 
 import static java.util.Objects.isNull;
 
-public class ClassBindingCreatorImpl implements ClassBindingCreator {
+public class BindingCreatorImpl implements BindingCreator {
 
-    private final static Class<? extends Annotation> ANNOTATION_CLASS = Inject.class;
-    private final static ClassBindingCreatorImpl instance = new ClassBindingCreatorImpl();
+    private static final Class<? extends Annotation> ANNOTATION_CLASS = Inject.class;
 
-    private ClassBindingCreatorImpl() {
-    }
-
-    public static ClassBindingCreatorImpl getInstance() {
-        return instance;
+    public BindingCreatorImpl() {
     }
 
     @Override
-    public <T> ClassBinding getBinding(Class<T> intf, Class<? extends T> impl) {
+    public <T> Binding getBinding(Class<T> intf, Class<? extends T> impl) {
         if (isNull(intf) || isNull(impl)) {
             throw new IllegalArgumentException();
         }
@@ -46,19 +42,17 @@ public class ClassBindingCreatorImpl implements ClassBindingCreator {
             usedConstructor = annotatedConstructors[0];
         }
 
-        Class<?>[] argsTypes = usedConstructor.getParameterTypes();
-
-        return new ClassBinding(intf, impl, usedConstructor, argsTypes, false);
+        return new Binding(intf, impl, usedConstructor, Scope.PROTOTYPE);
     }
 
     @Override
-    public <T> ClassBinding getSingletonBinding(Class<T> intf, Class<? extends T> impl) {
+    public <T> Binding getSingletonBinding(Class<T> intf, Class<? extends T> impl) {
         if (isNull(intf) || isNull(impl)) {
             throw new IllegalArgumentException();
         }
 
-        ClassBinding binding = getBinding(intf, impl);
-        binding.setSingleton(true);
+        Binding binding = getBinding(intf, impl);
+        binding.setScope(Scope.SINGLETON);
         return binding;
     }
 
