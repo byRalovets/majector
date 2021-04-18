@@ -39,8 +39,9 @@ public class ClassBindingCreatorImpl implements ClassBindingCreator {
 
         if (annotatedConstructors.length == 0) {
             usedConstructor = getDefaultConstructor(impl);
-            if (isNull(usedConstructor))
+            if (isNull(usedConstructor)) {
                 throw new ConstructorNotFoundException();
+            }
         } else {
             usedConstructor = annotatedConstructors[0];
         }

@@ -26,12 +26,14 @@ public class InjectorImpl implements Injector {
      */
     @Override
     public <T> Provider<T> getProvider(Class<T> type) {
-        if (isNull(type))
+        if (isNull(type)) {
             throw new IllegalArgumentException();
+        }
 
         ClassBinding binding = bindings.get(type);
-        if (isNull(binding))
+        if (isNull(binding)) {
             return null;
+        }
 
         Object resultObject;
         if (binding.isSingleton()) {
@@ -47,8 +49,9 @@ public class InjectorImpl implements Injector {
      */
     @Override
     public <T> void bind(Class<T> intf, Class<? extends T> impl) {
-        if (isNull(intf) || isNull(impl))
+        if (isNull(intf) || isNull(impl)) {
             throw new IllegalArgumentException();
+        }
 
         ClassBinding binding = bindingCreator.getBinding(intf, impl);
         bindings.put(intf, binding);
@@ -59,8 +62,9 @@ public class InjectorImpl implements Injector {
      */
     @Override
     public <T> void bindSingleton(Class<T> intf, Class<? extends T> impl) {
-        if (isNull(intf) || isNull(impl))
+        if (isNull(intf) || isNull(impl)) {
             throw new IllegalArgumentException();
+        }
 
         ClassBinding binding = bindingCreator.getSingletonBinding(intf, impl);
         bindings.put(intf, binding);
@@ -69,13 +73,15 @@ public class InjectorImpl implements Injector {
     private Object instantiateObjectRecursively(Class<?> type) {
         Long threadId = Thread.currentThread().getId();
 
-        if (!injectionHistory.computeIfAbsent(threadId, t -> new HashSet<>()).add(type))
+        if (!injectionHistory.computeIfAbsent(threadId, t -> new HashSet<>()).add(type)) {
             throw new RecursiveInjectionException();
+        }
 
         ClassBinding binding = bindings.get(type);
 
-        if (isNull(binding))
+        if (isNull(binding)) {
             throw new BindingNotFoundException();
+        }
 
         Object[] args = Arrays.stream(binding.getConstructorArgsTypes())
                 .map(this::instantiateObjectRecursively).toArray();
