@@ -30,7 +30,7 @@ Hi! This is the simplest version of the DI container.
    cannot find binding for any argument, `BindingNotFoundException` is thrown.
 8. If you are requesting `Provider` for a class and there is no corresponding binding, `null` is returned.
 9. Ability to use `Singleton` and `Prototype` beans.
-10. The implementation of getting providers must be thread-safe.
+10. Lazy `Singleton` beans.
 11. Injection only via constructors.
 12. All constructor arguments are guaranteed to be reference types.
 13. All constructors are `public`.
