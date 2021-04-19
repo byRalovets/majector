@@ -22,7 +22,7 @@ public class InjectorImpl implements Injector {
 
     /*
      * This map is used to detect recursive injections.
-     * Key is thread id; value is set of classes in current injection.
+     * Key is thread id; value is set of classes in current injection chain.
      * This is used as a stack, but the uniqueness of the elements is important, not the order
      */
     Map<Long, Set<Class<?>>> injectionHistory = new HashMap<>();
