@@ -49,18 +49,10 @@ public class InjectorImpl implements Injector {
         // throws RecursiveInjectionException
         checkInfiniteRecursion(type);
 
-        Object resultObject;
-        if (binding.getScope().equals(Scope.SINGLETON)) {
-            if (singletonsCache.containsKey(type)) {
-                resultObject = singletonsCache.get(type);
-            } else {
-                resultObject = instantiateObjectRecursively(type);
-                singletonsCache.put(type, resultObject);
-            }
-            return () -> (T) resultObject;
-        } else {
-            return () -> (T) instantiateObjectRecursively(type);
-        }
+        return switch (binding.getScope()) {
+            case SINGLETON -> () -> (T) getSingletonFromCache(type);
+            case PROTOTYPE -> () -> (T) instantiateObjectRecursively(type);
+        };
     }
 
     /**
@@ -145,5 +137,16 @@ public class InjectorImpl implements Injector {
                 .forEach(this::checkInfiniteRecursion);
 
         injectionHistory.get(threadId).remove(type);
+    }
+
+    private Object getSingletonFromCache(Class<?> type) {
+        Object resultObject;
+        if (singletonsCache.containsKey(type)) {
+            resultObject = singletonsCache.get(type);
+        } else {
+            resultObject = instantiateObjectRecursively(type);
+            singletonsCache.put(type, resultObject);
+        }
+        return resultObject;
     }
 }
